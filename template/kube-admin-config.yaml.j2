@@ -1,0 +1,97 @@
+---
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: InitConfiguration
+nodeRegistration:
+localAPIEndpoint:
+  advertiseAddress: "{{ ansible_default_ipv4.address }}"
+  bindPort: {{ LEO_CLUSTER_K8S_API_SERVER_PORT }}
+---
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+clusterName: {{ LEO_CLUSTER_NAME }}
+kubernetesVersion: {{ LEO_CLUSTER_KUBERNETES_VERSION }}
+networking:
+  podSubnet: "{{ LEO_CLUSTER_POD_SUBNET | default(kubernetes_default_pod_cidr) }}"
+{% if LEO_CLUSTER_SERVICE_SUBNET is defined %}
+  serviceSubnet: {{ LEO_CLUSTER_SERVICE_SUBNET }}
+{% endif %}
+controlPlaneEndpoint: "{{ LEO_CLUSTER_K8S_API_SERVER_ADVERTISE_ADDRESS }}:{{ LEO_CLUSTER_K8S_API_SERVER_ADVERTISE_PORT }}"
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+dns:
+  type: CoreDNS
+imageRepository: {{ kubernetes_image_repository | default("k8s.gcr.io") }}
+apiServer:
+  extraArgs:
+{% if kubernetes_client_ca_file is defined %}
+    client-ca-file: /etc/kubernetes/pki/client_ca.pem
+{% endif %}
+  certSANs:
+  - "{{ LEO_CLUSTER_K8S_API_SERVER_ADVERTISE_ADDRESS }}"
+  {% for master in groups['kubernetes-masters'] %}
+  - {{ master }}
+  {% endfor %}
+controllerManager:
+  extraArgs:
+{% if kubernetes_pki is defined %}
+    tls-cert-file: /etc/kubernetes/pki/kube-controller-manager.crt
+    tls-private-key-file: /etc/kubernetes/pki/kube-controller-manager.key
+{% if "ca_chain" in kubernetes_pki %}
+    root-ca-file: /etc/kubernetes/pki/ac_full_chain.crt
+{% endif %}
+{% endif %}
+{% if kubernetes_kube_controller_manager_bind_address is defined %}
+    bind-address: {{ kubernetes_kube_controller_manager_bind_address }}
+{% endif %}
+{% if kubernetes_kube_controller_manager_port is defined %}
+    port: "{{ kubernetes_kube_controller_manager_port }}"
+{% endif %}
+scheduler:
+  extraArgs:
+{% if kubernetes_pki is defined %}
+    tls-cert-file: /etc/kubernetes/pki/kube-scheduler.crt
+    tls-private-key-file: /etc/kubernetes/pki/kube-scheduler.key
+{% endif %}
+{% if kubernetes_kube_scheduler_bind_address is defined %}
+    bind-address: {{ kubernetes_kube_scheduler_bind_address }}
+{% endif %}
+{% if kubernetes_kube_scheduler_port is defined %}
+    port: "{{ kubernetes_kube_scheduler_port }}"
+{% endif %}
+{% if kubernetes_pki is defined %}
+  extraVolumes:
+  - name: "k8s-certs-key"
+    hostPath: "/etc/kubernetes/pki/kube-scheduler.key"
+    mountPath: "/etc/kubernetes/pki/kube-scheduler.key"
+    readOnly: true
+    pathType: File
+  - name: "k8s-certs-crt"
+    hostPath: "/etc/kubernetes/pki/kube-scheduler.crt"
+    mountPath: "/etc/kubernetes/pki/kube-scheduler.crt"
+    readOnly: true
+    pathType: File
+{% endif %}
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+serverTLSBootstrap: true
+---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+mode: {{ LEO_CLUSTER_PROXY_MODE }}
+{% if LEO_CLUSTER_PROXY_MODE == "ipvs" %}
+ipvs:
+  syncPeriod: {{ kubernetes_proxy_mode_ipvs_sync_period | default('30s') }}
+  minSyncPeriod: {{ kubernetes_proxy_mode_ipvs_min_sync_period | default('2s') }}
+  scheduler: {{ kubernetes_proxy_mode_ipvs_scheduler | default('rr') }}
+{% endif %}
+{% if LEO_CLUSTER_PROXY_MODE == "iptables" %}
+iptables:
+  syncPeriod: {{ kubernetes_proxy_mode_iptables_sync_period | default('30s') }}
+  minSyncPeriod: {{ kubernetes_proxy_mode_iptables_min_sync_period | default('2s') }}
+{% endif %}
+{% if kubernetes_kube_proxy_metrics_bind_address is defined %}
+metricsBindAddress: {{ kubernetes_kube_proxy_metrics_bind_address }}
+{% endif %}
+

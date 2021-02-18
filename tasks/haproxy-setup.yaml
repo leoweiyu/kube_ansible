@@ -1,0 +1,51 @@
+- name: Install haproxy and keepalived
+  apt:
+    update_cache: false
+    name:
+      - keepalived
+      - haproxy
+    state: present
+  when: 'inventory_hostname == groups["kubernetes_masters"][0] or inventory_hostname == groups["kubernetes_masters"][1]'
+
+
+- name: set keepalive role for master1
+  set_fact:
+    LEO_CLUSTER_KEEPALIVE_ROLE: 'MASTER'
+    LEO_CLUSTER_KEEPALIVE_PRIORITY: 100
+    LEO_CLUSTER_KEEPALIVE_PEER: {{ LEO_CLUSTER_MASTER2_IP }}
+  when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+
+
+- name: set keepalive role for master2
+  set_fact:
+    LEO_CLUSTER_KEEPALIVE_ROLE: 'BACKUP'
+    LEO_CLUSTER_KEEPALIVE_PRIORITY: 80
+    LEO_CLUSTER_KEEPALIVE_PEER: {{ LEO_CLUSTER_MASTER1_IP }}
+  when: 'inventory_hostname == groups["kubernetes_masters"][1]'
+
+
+- name: install keepalived conf file
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/
+    mode: 0755
+  when: 'inventory_hostname == groups["kubernetes_masters"][0] or inventory_hostname == groups["kubernetes_masters"][1]'
+
+
+- name: install haproxy conf file
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/
+    mode: 0755
+  when: 'inventory_hostname == groups["kubernetes_masters"][0] or inventory_hostname == groups["kubernetes_masters"][1]'
+
+
+- name: enable haproxy and keepalived service
+  service:
+    name: {{ item }}
+    state: started
+    enabled: true
+    with_items:
+      - haproxy
+      - keepalived
+  when: 'inventory_hostname == groups["kubernetes_masters"][0] or inventory_hostname == groups["kubernetes_masters"][1]'

@@ -1,0 +1,106 @@
+#####################################
+# Get system facts
+#####################################
+- name: Gather the package facts
+  package_facts:
+    manager: auto
+
+- name: print the package facts
+  debug:
+    var: ansible_facts.packages
+  when: LEO_CLUSTER_DEBUG == true
+
+
+#####################################
+# Install required packages
+##################################### 
+- name: configure kubernetes apt repository and install required packages
+  block:
+  - name: add kuberentes apt repository key
+    apt_key:
+      url: "{{ LEO_CLUSTER_APT_KUBERNETES_URL }}/doc/apt-key.gpg"
+      id: 54A647F9048D5688D7DA2ABE6A030B21BA07F4FB
+      state: present
+
+  - name: add kubernetes apt repo
+    apt_repository:
+      repo: "deb {{ LEO_CLUSTER_APT_KUBERNETES_URL }} kubernetes-xenial main"
+      state: present
+ 
+  - name: install docker
+    apt:
+      update_cache: true
+      name:
+        - docker.io
+      state: present
+ 
+  - name: install kubernetes packages
+    apt:
+      name:
+        - kubelet={{ LEO_CLUSTER_KUBERNETES_VERSION }}-00
+        - kubeadm={{ LEO_CLUSTER_KUBERNETES_VERSION }}-00
+        - kubectl={{ LEO_CLUSTER_KUBERNETES_VERSION }}-00
+      state: present
+  when: '"kubeadm" not in ansible_facts.packages and ansible_os_family == "Debian"'
+
+- name: Install Ipset package
+  package:
+    name: ipset
+    state: present
+  when: LEO_CLUSTER_PROXY_MODE == "ipvs"
+
+
+#########################################
+# Install kernel modules
+#########################################
+- name: Load IPVS modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - ip_vs
+    - ip_vs_rr
+    - ip_vs_wrr
+    - ip_vs_sh
+  when: LEO_CLUSTER_PROXY_MODE == "ipvs"
+
+# (if you use docker as container run time, then you don't need this)
+- name: Load br_netfilter module 
+  modeprobe: 
+    name: br_netfilter
+    state: present
+
+
+########################################
+# Set required sysctl parameters
+########################################
+- name: Set sysctl parameters
+  sysctl:
+    name: "{{ item }}"
+    value: '1'
+    state: present
+    sysctl_file: "/etc/sysctl.d/k8s.conf"
+  with_items:
+    - net.bridge.bridge-nf-call-ip6tables
+    - net.bridge.bridge-nf-call-iptables
+    - net.ipv4.ip_forward
+
+
+########################################
+# Turn off swap
+########################################
+- name: Turn off swap
+  block:
+    - name: turn off swap in sysctl parameter
+      sysctl:
+        name: "vm.swappiness"
+        value: '0'
+        state: present
+        sysctl_file: "/etc/sysctl.d/k8s.conf"
+    - name: turn off swap by command
+      command: swapoff -a
+    - name: comment out swap file in /etc/fstab
+      replace:
+        path: /etc/fstab
+        regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+        replace: '# \1'
