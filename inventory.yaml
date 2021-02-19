@@ -1,0 +1,11 @@
+[kubernetes_masters]
+ansible1.10.0.2.15.nip.io
+ansible2.10.0.2.16.nip.io
+[kubernetes_masters:vars]
+ansible_python_interpreter=/usr/bin/python3
+
+[kubernetes_workers]
+ansible3.10.0.2.17.nip.io
+ansible4.10.0.2.18.nip.io
+[kubernetes_workers:vars]
+ansible_python_interpreter=/usr/bin/python3

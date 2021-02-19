@@ -2,8 +2,8 @@
 - name: Prerequisites
   include_tasks: pre-requisites.yaml
 
-- name: Init masters
-  include_task: init-masters.yaml
+  #- name: Init masters
+  #include_tasks: init-masters.yaml
 
 - name: setup API High availabilities
-  include_task: haproxy-setup.yaml
+  include_tasks: haproxy-setup.yaml
