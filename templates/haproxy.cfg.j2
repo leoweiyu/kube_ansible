@@ -15,7 +15,7 @@ defaults
   timeout client  1m
   timeout server  1m
 
-frontend_kubernetes
+frontend kubernetes
   bind *:8443
   mode tcp
   default_backend kubernetes_master
