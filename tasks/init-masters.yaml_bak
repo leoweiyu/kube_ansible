@@ -1,0 +1,56 @@
+- name: make sure /etc/kubeadm directory exists
+  file:
+    path: /etc/kubeadm/
+    state: directory
+    mode: 0755
+  when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+
+- name: Copy the kubeadm init config
+  template:
+    src: 'kube-admin-config.yaml.j2'
+    dest: '/etc/kubeadm/config.yaml'
+    mode: 0644
+  when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+
+- name: check init lck
+  stat:
+    path: '/etc/kubernetes/admin.conf'
+  register: node_initialized
+  when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+
+
+- name: Init master node 0
+  shell: 'kubeadm init --config /etc/kubeadm/config.yaml > /etc/kubernetes/init.lck'
+  register: init_master_output
+  when: 'inventory_hostname == groups["kubernetes_masters"][0] and not node_initialized.stat.exists'
+
+- name: debug join commands
+  debug:
+    var: init_master_output
+  when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+
+- name: get join command
+  shell: |
+      a=$(cat /etc/kubernetes/init.lck|grep 'kubeadm join'|grep -v '^ ');
+      b=$(cat /etc/kubernetes/init.lck|grep 'ca-cert-hash'|tail -1);
+      c="${a::-1}$b";
+      echo $c
+  args:
+    executable: /bin/bash
+  register: join_command
+  when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+
+- name: debug join command
+  debug:
+    var: join_command['stdout']
+  when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+
+- name: set fact on other hosts
+  set_fact: basic_command= "{{ join_command['stdout'] }}"
+
+- name: join other masters
+  command: "{{ basic_command }} --control-plane"
+  when: >
+          inventory_hostname in groups["kubernetes_masters"] and
+          inventory_hostname != groups["kubernetes_masters"][0]
+
