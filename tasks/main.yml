@@ -7,3 +7,6 @@
 
 - name: Init masters
   include_tasks: init-masters.yaml
+
+- name: Init nodes
+  include_tasks: init-nodes.yaml

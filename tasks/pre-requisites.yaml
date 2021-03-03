@@ -49,6 +49,13 @@
     state: present
   when: LEO_CLUSTER_PROXY_MODE == "ipvs"
 
+- name: Install Ipset package
+  package:
+    name: ipvsadm
+    state: present
+  when: LEO_CLUSTER_PROXY_MODE == "ipvs"
+
+
 
 #########################################
 # Install kernel modules

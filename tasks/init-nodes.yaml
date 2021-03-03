@@ -1,0 +1,24 @@
+- name: install calico operator
+  k8s:
+    state: present
+    src: "{{ role_path }}/files/tigera-operator.yaml"
+    kubeconfig: "/etc/kubernetes/admin.conf"
+  when: >
+    inventory_hostname == groups["kubernetes_masters"][0]
+
+- name: generate calico crds
+  k8s:
+    state: present
+    definition: "{{ lookup('template', role_path + '/files/custom-resources.yaml') }}"
+    kubeconfig: "/etc/kubernetes/admin.conf"
+    wait_timeout: 600
+    wait: yes
+  when: >
+    inventory_hostname == groups["kubernetes_masters"][0]
+
+- name: join nodes 
+  command: "{{ basic_command }}"
+  when: >
+          inventory_hostname in groups["kubernetes_workers"] and
+          not node_initialized.stat.exists
+
