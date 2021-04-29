@@ -43,6 +43,12 @@
       state: present
   when: '"kubeadm" not in ansible_facts.packages and ansible_os_family == "Debian"'
 
+- name: auto start docker
+  service:
+    name: docker
+    state: started
+    enabled: true
+
 - name: Install Ipset package
   package:
     name: ipset
