@@ -24,6 +24,7 @@ dns:
 imageRepository: {{ LEO_CLUSTER_IMAGE_REPO | default("k8s.gcr.io") }}
 apiServer:
   extraArgs:
+    enable-admission-plugins: {{ LEO_CLUSTER_ENABLED_ADMISSION_CONTROLLERS }}
 {% if LEO_CLUSTER_CLIENT_CA_FILE is defined %}
     client-ca-file: /etc/kubernetes/pki/client_ca.pem
 {% endif %}
