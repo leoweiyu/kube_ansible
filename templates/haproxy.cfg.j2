@@ -16,11 +16,14 @@ defaults
   timeout server  1m
 
 frontend kubernetes
-  bind *:8443
+  bind *:{{LEO_CLUSTER_K8S_API_SERVER_ADVERTISE_PORT}}
   mode tcp
   default_backend kubernetes_master
 
 backend kubernetes_master
   balance  roundrobin
-  server 210 {{LEO_CLUSTER_MASTER1_IP}}:6443 check maxconn 2000
-  server 211 {{LEO_CLUSTER_MASTER2_IP}}:6443 check maxconn 2000
+  {% set ns = namespace(haproxy_server_start_id=210) %}
+  {% for host in groups['kubernetes_masters'] %}
+  server {{ns.haproxy_server_start_id}} {{host}}:6443 check maxconn 2000
+  {% set ns.haproxy_server_start_id = ns.haproxy_server_start_id + 1 %}
+  {% endfor %}
