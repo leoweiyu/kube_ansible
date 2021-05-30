@@ -8,8 +8,6 @@ LEO_CLUSTER_K8S_API_SERVER_ADVERTISE_PORT: 8443
 LEO_CLUSTER_K8S_API_SERVER_PORT: 6443
 LEO_CLUSTER_POD_SUBNET: 172.1.0.0/16
 LEO_CLUSTER_SERVICE_SUBNET: 10.96.0.0/16
-LEO_CLUSTER_MASTER1_IP: 10.0.2.15
-LEO_CLUSTER_MASTER2_IP: 10.0.2.16
 LEO_CLUSTER_IMAGE_REPO: "k8s.gcr.io"
 LEO_CLUSTER_ENABLED_ADMISSION_CONTROLLERS: "NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,PodSecurityPolicy,NodeRestriction,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota"
 
