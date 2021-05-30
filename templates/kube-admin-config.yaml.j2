@@ -29,7 +29,9 @@ apiServer:
     client-ca-file: /etc/kubernetes/pki/client_ca.pem
 {% endif %}
   certSANs:
-  - "{{ LEO_CLUSTER_MASTER2_IP }}"
+{% for host in groups['kubernetes_masters'] %}
+  - {{hostvars[host].ansible_host}}
+{% forend %}
   - "{{ LEO_CLUSTER_K8S_API_SERVER_ADVERTISE_ADDRESS }}"
 {% for master in groups['kubernetes_masters'] %}
   - "{{ master }}"
