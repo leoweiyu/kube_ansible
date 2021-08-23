@@ -19,7 +19,7 @@
   - name: add kuberentes apt repository key
     apt_key:
       url: "{{ LEO_CLUSTER_APT_KUBERNETES_URL }}/doc/apt-key.gpg"
-      id: 54A647F9048D5688D7DA2ABE6A030B21BA07F4FB
+      #id: 54A647F9048D5688D7DA2ABE6A030B21BA07F4FB
       state: present
 
   - name: add kubernetes apt repo
@@ -34,7 +34,14 @@
         - docker.io
       state: present
     when: LEO_CLUSTER_CONTAINER_RUNTIME == "docker"
- 
+
+  - name: install jq
+    apt:
+      update_cache: true
+      name:
+        - jq
+      state: present
+
   - name: install containerd
     apt:
       update_cache: true
@@ -54,7 +61,7 @@
 
 - name: auto start container runtime
   service:
-    name: {{LEO_CLUSTER_CONTAINER_RUNTIME}}
+    name: "{{ LEO_CLUSTER_CONTAINER_RUNTIME }}"
     state: started
     enabled: true
 
