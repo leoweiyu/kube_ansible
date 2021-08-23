@@ -5,23 +5,21 @@
       - keepalived
       - haproxy
     state: present
-  when: 'inventory_hostname == groups["kubernetes_masters"][0] or inventory_hostname == groups["kubernetes_masters"][1]'
+  when: "'kubernetes_masters' in group_names"
 
 
 - name: set keepalive role for master1
   set_fact:
     LEO_CLUSTER_KEEPALIVE_ROLE: 'MASTER'
     LEO_CLUSTER_KEEPALIVE_PRIORITY: 100
-    LEO_CLUSTER_KEEPALIVE_PEER: "{{ LEO_CLUSTER_MASTER2_IP }}"
   when: 'inventory_hostname == groups["kubernetes_masters"][0]'
 
 
-- name: set keepalive role for master2
+- name: set keepalive role for other masters
   set_fact:
     LEO_CLUSTER_KEEPALIVE_ROLE: 'BACKUP'
     LEO_CLUSTER_KEEPALIVE_PRIORITY: 80
-    LEO_CLUSTER_KEEPALIVE_PEER: "{{ LEO_CLUSTER_MASTER1_IP }}"
-  when: 'inventory_hostname == groups["kubernetes_masters"][1]'
+  when: "'kubernetes_masters' in group_names and inventory_hostname != groups['kubernetes_masters'][0]"
 
 
 - name: install keepalived conf file
@@ -29,7 +27,7 @@
     src: keepalived.conf.j2
     dest: /etc/keepalived/keepalived.conf
     mode: 0644
-  when: 'inventory_hostname == groups["kubernetes_masters"][0] or inventory_hostname == groups["kubernetes_masters"][1]'
+  when: "'kubernetes_masters' in group_names"
 
 
 - name: install haproxy conf file
@@ -37,7 +35,7 @@
     src: haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
     mode: 0644
-  when: 'inventory_hostname == groups["kubernetes_masters"][0] or inventory_hostname == groups["kubernetes_masters"][1]'
+  when: "'kubernetes_masters' in group_names" 
 
 
 - name: enable haproxy and keepalived service
@@ -48,4 +46,4 @@
   with_items:
     - haproxy
     - keepalived
-  when: 'inventory_hostname == groups["kubernetes_masters"][0] or inventory_hostname == groups["kubernetes_masters"][1]'
+  when: "'kubernetes_masters' in group_names"

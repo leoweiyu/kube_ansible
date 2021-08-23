@@ -19,7 +19,7 @@
   - name: add kuberentes apt repository key
     apt_key:
       url: "{{ LEO_CLUSTER_APT_KUBERNETES_URL }}/doc/apt-key.gpg"
-      id: 54A647F9048D5688D7DA2ABE6A030B21BA07F4FB
+      #id: 54A647F9048D5688D7DA2ABE6A030B21BA07F4FB
       state: present
 
   - name: add kubernetes apt repo
@@ -33,7 +33,23 @@
       name:
         - docker.io
       state: present
- 
+    when: LEO_CLUSTER_CONTAINER_RUNTIME == "docker"
+
+  - name: install jq
+    apt:
+      update_cache: true
+      name:
+        - jq
+      state: present
+
+  - name: install containerd
+    apt:
+      update_cache: true
+      name:
+        - containerd
+      state: present
+    when: LEO_CLUSTER_CONTAINER_RUNTIME == "containerd"
+
   - name: install kubernetes packages
     apt:
       name:
@@ -43,9 +59,9 @@
       state: present
   when: '"kubeadm" not in ansible_facts.packages and ansible_os_family == "Debian"'
 
-- name: auto start docker
+- name: auto start container runtime
   service:
-    name: docker
+    name: "{{ LEO_CLUSTER_CONTAINER_RUNTIME }}"
     state: started
     enabled: true
 
@@ -80,8 +96,12 @@
 # (if you use docker as container run time, then you don't need this)
 - name: Load br_netfilter module 
   modprobe: 
-    name: br_netfilter
+    name: "{{ item }}"
     state: present
+  with_items:
+    - overlay
+    - br_netfilter
+  when: LEO_CLUSTER_CONTAINER_RUNTIME == "containerd"
 
 
 ########################################
