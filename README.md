@@ -4,9 +4,13 @@ The purpose of this repo is to setup test kubernetes cluster easily with Ansible
 
 # prerequisites:
 a) 3+ ubuntu 18/20 servers, with proper ip/hostname configured
+
 b) have keybased ssh connection configured from the master 0 server to all other servers
+
 c) make sure you have python3 installed on server master 0
+
 d) make sure you have ansible installed on server master 0
+
 
 
 ## how to use ?
