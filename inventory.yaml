@@ -1,11 +1,11 @@
 [kubernetes_masters]
-xansible1.192.168.1.171.nip.io ansible_host=192.168.1.171
-xansible2.192.168.1.172.nip.io ansible_host=192.168.1.172
+yansible1.192.168.1.171.nip.io ansible_host=192.168.1.171
+yansible2.192.168.1.172.nip.io ansible_host=192.168.1.172
 [kubernetes_masters:vars]
 ansible_python_interpreter=/usr/bin/python3
 
 [kubernetes_workers]
-xansible3.192.168.1.173.nip.io ansible_host=192.168.1.173
-xansible4.192.168.1.174.nip.io ansible_host=192.168.1.174
+yansible3.192.168.1.173.nip.io ansible_host=192.168.1.173
+yansible4.192.168.1.174.nip.io ansible_host=192.168.1.174
 [kubernetes_workers:vars]
 ansible_python_interpreter=/usr/bin/python3

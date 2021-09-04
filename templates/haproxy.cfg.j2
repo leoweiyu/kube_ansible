@@ -24,6 +24,7 @@ backend kubernetes_master
   balance  roundrobin
   {% set ns = namespace(haproxy_server_start_id=210) %}
   {% for host in groups['kubernetes_masters'] %}
-  server {{ns.haproxy_server_start_id}} {{host}}:6443 check maxconn 2000
+  #server {{ns.haproxy_server_start_id}} {{host}}:6443 check maxconn 2000
+  server {{ns.haproxy_server_start_id}} {{host}}:6443 maxconn 2000
   {% set ns.haproxy_server_start_id = ns.haproxy_server_start_id + 1 %}
   {% endfor %}

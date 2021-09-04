@@ -22,6 +22,11 @@
           inventory_hostname in groups["kubernetes_workers"] and
           not node_initialized.stat.exists
 
+- name: create .kube folder
+  command: mkdir ~/.kube
+  when: >
+          inventory_hostname == groups["kubernetes_masters"][0]
+
 - name: copy kubeconfig file to root user directory
   command: cp /etc/kubernetes/admin.conf /root/.kube/config
   when: >
