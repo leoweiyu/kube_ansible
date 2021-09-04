@@ -4,7 +4,8 @@
     src: "{{ role_path }}/files/tigera-operator.yaml"
     kubeconfig: "/etc/kubernetes/admin.conf"
   when: >
-    inventory_hostname == groups["kubernetes_masters"][0]
+    inventory_hostname == groups["kubernetes_masters"][0] and
+    LEO_CLUSTER_CNI == "calico"
 
 - name: generate calico crds
   k8s:
@@ -14,7 +15,19 @@
     wait_timeout: 600
     wait: yes
   when: >
-    inventory_hostname == groups["kubernetes_masters"][0]
+    inventory_hostname == groups["kubernetes_masters"][0] and
+    LEO_CLUSTER_CNI == "calico"
+
+- name: install flannel
+  k8s:
+    state: present
+    definition: "{{ lookup('template', role_path + '/files/kube-flannel.yml') }}"
+    kubeconfig: "/etc/kubernetes/admin.conf"
+    wait_timeout: 600
+    wait: yes
+  when: >
+    inventory_hostname == groups["kubernetes_masters"][0] and
+    LEO_CLUSTER_CNI == "flannel"
 
 - name: join nodes 
   command: "{{ basic_command }}"
