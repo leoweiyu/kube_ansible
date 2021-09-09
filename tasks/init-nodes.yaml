@@ -1,19 +1,33 @@
-- name: install calico operator
-  k8s:
-    state: present
-    src: "{{ role_path }}/files/tigera-operator.yaml"
-    kubeconfig: "/etc/kubernetes/admin.conf"
+#- name: install calico operator
+#  k8s:
+#    state: present
+#    src: "{{ role_path }}/files/tigera-operator.yaml"
+#    kubeconfig: "/etc/kubernetes/admin.conf"
+#  when: >
+#    inventory_hostname == groups["kubernetes_masters"][0] and
+#    LEO_CLUSTER_CNI == "calico"
+#
+#- name: generate calico crds
+#  k8s:
+#    state: present
+#    definition: "{{ lookup('template', role_path + '/files/custom-resources.yaml') }}"
+#    kubeconfig: "/etc/kubernetes/admin.conf"
+#    wait_timeout: 600
+#    wait: yes
+#  when: >
+#    inventory_hostname == groups["kubernetes_masters"][0] and
+#    LEO_CLUSTER_CNI == "calico"
+- name: download calico yaml file
+  command: "wget https://docs.projectcalico.org/manifests/calico.yaml -O /tmp/calico.yaml"
   when: >
     inventory_hostname == groups["kubernetes_masters"][0] and
     LEO_CLUSTER_CNI == "calico"
 
-- name: generate calico crds
+- name: install calico
   k8s:
     state: present
-    definition: "{{ lookup('template', role_path + '/files/custom-resources.yaml') }}"
+    src: "/tmp/calico.yaml"
     kubeconfig: "/etc/kubernetes/admin.conf"
-    wait_timeout: 600
-    wait: yes
   when: >
     inventory_hostname == groups["kubernetes_masters"][0] and
     LEO_CLUSTER_CNI == "calico"
