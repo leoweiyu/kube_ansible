@@ -4,9 +4,9 @@ The purpose of this repo is to setup a fully functioning kubernetes cluster easi
 
 features:
 1. HA (keepalived and haproxy)
-2. Calico CNI
+2. Calico CNI/ Flannel
 3. Allows you to specify controller plugins
-4. Allow you to specify container runtime
+4. Allow you to specify container runtime (Docker/Containerd)
 
 
 # prerequisites:
