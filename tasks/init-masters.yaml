@@ -19,7 +19,7 @@
 
 
 - name: Init master node 0
-  shell: 'kubeadm init --config /etc/kubeadm/config.yaml > /etc/kubernetes/init.lck'
+  shell: 'kubeadm init --ignore-preflight-errors=NumCPU  --ignore-preflight-errors=Mem --config /etc/kubeadm/config.yaml > /etc/kubernetes/init.lck'
   register: init_master_output
   when: 'inventory_hostname == groups["kubernetes_masters"][0] and not node_initialized.stat.exists'
 
@@ -33,7 +33,8 @@
       a=$(cat /etc/kubernetes/init.lck|grep 'kubeadm join'|grep -v '^ ');
       b=$(cat /etc/kubernetes/init.lck|grep 'ca-cert-hash'|tail -1);
       c="${a::-1}$b";
-      echo $c
+      d="$c --ignore-preflight-errors=NumCPU  --ignore-preflight-errors=Mem"
+      echo $d
   args:
     executable: /bin/bash
   register: join_command
