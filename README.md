@@ -4,19 +4,72 @@ The purpose of this repo is to setup a fully functioning kubernetes cluster easi
 
 features:
 1. HA (keepalived and haproxy)
-2. Calico CNI/ Flannel
+2. Allows you to specify CNI, either Calico CNI or Flannel (use Calico if you want to play with NetworkPolicies)
 3. Allows you to specify controller plugins
 4. Allow you to specify container runtime (Docker/Containerd)
 
 
 # prerequisites:
+
+
 a) 3+ ubuntu 18/20 servers, with proper ip/hostname configured
+for example
+```
+hostnamectl set-hostname k8s1.192.168.2.31.nip.io
+hostnamectl set-hostname k8s2.192.168.2.32.nip.io
+hostnamectl set-hostname k8s3.192.168.2.33.nip.io
+hostnamectl set-hostname k8s4.192.168.2.34.nip.io
+```
 
-b) have keybased ssh connection configured from the master 0 server to all other servers
+b) upgrade all servers before proceed
+```
+apt update
+apt upgrade
+```
 
-c) make sure you have python3 installed on server master 0
+c) setup hostname in /etc/hosts file
+```
+192.168.2.31    k8s1.192.168.2.31.nip.io
+192.168.2.32    k8s2.192.168.2.32.nip.io
+192.168.2.33    k8s3.192.168.2.33.nip.io
+192.168.2.34    k8s4.192.168.2.34.nip.io
+```
 
-d) make sure you have ansible installed on server master 0
+d) permit root ssh login
+on all servers, sudo to root and change the default password to whatever you want
+```
+passwd
+```
+edit file /etc/ssh/sshd_config, search for PermitRootLogin and change it to
+```
+PermitRootLogin yes
+```
+restart sshd server
+```
+systemctl restart ssh.service
+```
+
+e) setup password free login for api server 1 onto all other servers
+on api server1 (k8s1.192.168.2.31.nip.io for example)
+```
+ssh-keygen
+ssh-copy-id root@k8s1.192.168.2.31.nip.io
+ssh-copy-id root@k8s2.192.168.2.32.nip.io
+ssh-copy-id root@k8s3.192.168.2.33.nip.io
+ssh-copy-id root@k8s4.192.168.2.34.nip.io
+```
+
+f) install python3 and pip3 on api server 1 (k8s1.192.168.2.31.nip.io for example)
+```
+apt-get install python3 python3-pip
+```
+
+g) make sure you have python3 installed on api server 1 (k8s1.192.168.2.31.nip.io for example)
+```
+apt install software-properties-common
+apt-add-repository --yes --update ppa:ansible/ansible
+apt install ansible python3-pip
+```
 
 
 
@@ -24,13 +77,14 @@ d) make sure you have ansible installed on server master 0
 you will need to git clone this repo
 
 ```
+git clone git@github.com:leoweiyu/kube_ansible.git
 pip install -r kube_ansible/requirement.yaml
 ```
 
 
-examine kube_ansible/vars/main.yaml and making changes base on your situation
+examine kube_ansible/vars/main.yaml and making changes base on your environment and requirement
 
-examine kube_ansible/inventory.yaml and making changes base on your situation
+examine kube_ansible/inventory.yaml and making changes base on your environment and requirement
 
 once you made above change, you can now draf a play book file (leo-kube-playbook.yaml for example) something like following
 ```
