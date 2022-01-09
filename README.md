@@ -1,5 +1,5 @@
 # Kube_ansible
-
+![](https://assets.website-files.com/610cc7a5a58576a806711235/61371028773d7e7f92976edc_60884e8987a12fc2eda2f50b_logo_cka_whitetext-2.png)
 The purpose of this repo is to setup a fully functional kubernetes cluster easily with Ansible (within 30-60mins time, including environment prepairation)
 so that you can prepair you CKA/CKS exam locally using VMs (either VirtualBox/Vmware.. etc) instead of buying a environment.
 
