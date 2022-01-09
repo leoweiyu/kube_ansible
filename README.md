@@ -1,6 +1,7 @@
 # Kube_ansible
 
 The purpose of this repo is to setup a fully functional kubernetes cluster easily with Ansible (within 30-60mins time, including environment prepairation)
+so that you can prepair you CKA/CKS exam locally using VMs (either VirtualBox/Vmware.. etc) instead of buying a environment.
 
 ## features:
 1. HA (keepalived and haproxy)
