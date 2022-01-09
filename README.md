@@ -15,10 +15,10 @@ features:
 a) 3+ ubuntu 18/20 servers, with proper ip/hostname configured
 for example
 ```
-hostnamectl set-hostname k8s1.192.168.2.31.nip.io
-hostnamectl set-hostname k8s2.192.168.2.32.nip.io
-hostnamectl set-hostname k8s3.192.168.2.33.nip.io
-hostnamectl set-hostname k8s4.192.168.2.34.nip.io
+hostnamectl set-hostname xansible1.192.168.1.171.nip.io
+hostnamectl set-hostname xansible2.192.168.1.172.nip.io
+hostnamectl set-hostname xansible3.192.168.1.173.nip.io
+hostnamectl set-hostname xansible4.192.168.1.174.nip.io
 ```
 
 b) upgrade all servers before proceed
@@ -29,10 +29,10 @@ apt upgrade
 
 c) setup hostname in /etc/hosts file
 ```
-192.168.2.31    k8s1.192.168.2.31.nip.io
-192.168.2.32    k8s2.192.168.2.32.nip.io
-192.168.2.33    k8s3.192.168.2.33.nip.io
-192.168.2.34    k8s4.192.168.2.34.nip.io
+192.168.1.171    xansible1.192.168.1.171.nip.io
+192.168.1.172    xansible1.192.168.1.171.nip.io
+192.168.1.173    xansible1.192.168.1.171.nip.io
+192.168.1.174    xansible1.192.168.1.171.nip.io
 ```
 
 d) permit root ssh login
@@ -50,21 +50,21 @@ systemctl restart ssh.service
 ```
 
 e) setup password free login for api server 1 onto all other servers
-on api server1 (k8s1.192.168.2.31.nip.io for example)
+on api server1 (xansible1.192.168.1.171.nip.io for example)
 ```
 ssh-keygen
-ssh-copy-id root@k8s1.192.168.2.31.nip.io
-ssh-copy-id root@k8s2.192.168.2.32.nip.io
-ssh-copy-id root@k8s3.192.168.2.33.nip.io
-ssh-copy-id root@k8s4.192.168.2.34.nip.io
+ssh-copy-id root@xansible1.192.168.1.171.nip.io
+ssh-copy-id root@xansible2.192.168.1.172.nip.io
+ssh-copy-id root@xansible3.192.168.1.173.nip.io
+ssh-copy-id root@xansible4.192.168.1.174.nip.io
 ```
 
-f) install python3 and pip3 on api server 1 (k8s1.192.168.2.31.nip.io for example)
+f) install python3 and pip3 on api server 1 (xansible1.192.168.1.171.nip.io for example)
 ```
 apt-get install python3 python3-pip
 ```
 
-g) make sure you have python3 installed on api server 1 (k8s1.192.168.2.31.nip.io for example)
+g) make sure you have python3 installed on api server 1 (xansible1.192.168.1.171.nip.io for example)
 ```
 apt install software-properties-common
 apt-add-repository --yes --update ppa:ansible/ansible
