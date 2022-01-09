@@ -1,15 +1,15 @@
 # Kube_ansible
 
-The purpose of this repo is to setup a fully functioning kubernetes cluster easily with Ansible (within 5-10mins time)
+The purpose of this repo is to setup a fully functional kubernetes cluster easily with Ansible (within 30-60mins time, including environment prepairation)
 
-features:
+## features:
 1. HA (keepalived and haproxy)
 2. Allows you to specify CNI, either Calico CNI or Flannel (use Calico if you want to play with NetworkPolicies)
 3. Allows you to specify controller plugins
 4. Allow you to specify container runtime (Docker/Containerd)
 
 
-# prerequisites:
+## prerequisites:
 
 
 a) 3+ ubuntu 18/20 servers, with proper ip/hostname configured
