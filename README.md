@@ -8,6 +8,7 @@ so that you can prepair you CKA/CKS exam locally using VMs (either VirtualBox/Vm
 2. Allows you to specify CNI, either Calico CNI or Flannel (use Calico if you want to play with NetworkPolicies)
 3. Allows you to specify controller plugins
 4. Allow you to specify container runtime (Docker/Containerd)
+5. Allow to you setup a fully functional k8s cluster without having in depth knowledge of kubernetes
 
 
 ## prerequisites:
