@@ -3,6 +3,12 @@
 The purpose of this repo is to setup a fully functional kubernetes cluster easily with Ansible (within 30-60mins time, including environment prepairation)
 so that you can prepair you CKA/CKS exam locally using VMs (either VirtualBox/Vmware.. etc) instead of buying a environment.
 
+## NOTE:
+Do NOT update to 1.23.4 if you are using Calico CNI , p2p traffic will fail which throw the following error message, and the fix might be shipped until Calico:v3.22.1
+```
+ipset v7.1: Kernel and userspace incompatible: settype hash:ip,port with revision 6 not supported by userspace
+```
+
 ## features:
 1. HA (keepalived and haproxy)
 2. Allows you to specify CNI, either Calico CNI or Flannel (use Calico if you want to play with NetworkPolicies)
