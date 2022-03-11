@@ -8,6 +8,8 @@ Do NOT update to 1.23.4 if you are using Calico CNI , p2p traffic will fail whic
 ```
 ipset v7.1: Kernel and userspace incompatible: settype hash:ip,port with revision 6 not supported by userspace
 ```
+Confirmed Calico3.22.1 has fixed the issue in AMD image, but issue still remians for other platform (for example ARM)
+
 
 ## features:
 1. HA (keepalived and haproxy)
