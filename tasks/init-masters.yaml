@@ -5,12 +5,14 @@
     mode: 0755
   when: 'inventory_hostname == groups["kubernetes_masters"][0]'
 
+
 - name: Copy the kubeadm init config
   template:
     src: 'kube-admin-config.yaml.j2'
     dest: '/etc/kubeadm/config.yaml'
     mode: 0644
   when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+
 
 - name: check init lck
   stat:
@@ -23,10 +25,12 @@
   register: init_master_output
   when: 'inventory_hostname == groups["kubernetes_masters"][0] and not node_initialized.stat.exists'
 
+
 - name: debug join commands
   debug:
     var: init_master_output
   when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+
 
 - name: get join command
   shell: |
@@ -39,15 +43,18 @@
   register: join_command
   delegate_to: "{{ groups['kubernetes_masters'][0] }}"
 
+
 - name: debug join command
   debug:
     var: join_command['stdout']
   when: 'inventory_hostname == groups["kubernetes_masters"][0]'
 
+
 - name: set fact on other hosts
   set_fact: basic_command="{{ join_command['stdout'] }}"
 
-- name: copy PKI files
+
+- name: copy PKI files to other master servers
   synchronize:
     src: /etc/kubernetes/pki
     dest: /etc/kubernetes/
@@ -56,6 +63,7 @@
   when: >
           inventory_hostname in groups["kubernetes_masters"] and
           inventory_hostname != groups["kubernetes_masters"][0]
+
 
 - name: remove unneeded etcd certs
   command: "rm -rf {{ item }}"
@@ -66,6 +74,14 @@
     - /etc/kubernetes/pki/etcd/peer.crt
     - /etc/kubernetes/pki/etcd/server.key
     - /etc/kubernetes/pki/etcd/server.crt
+  when: >
+          inventory_hostname in groups["kubernetes_masters"] and
+          inventory_hostname != groups["kubernetes_masters"][0] and
+          not node_initialized.stat.exists
+
+
+- name: wait 3 mins to let primary master to be ready
+  command: "sleep 180"
   when: >
           inventory_hostname in groups["kubernetes_masters"] and
           inventory_hostname != groups["kubernetes_masters"][0] and

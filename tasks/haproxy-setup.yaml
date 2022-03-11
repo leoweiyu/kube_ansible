@@ -8,7 +8,7 @@
   when: "'kubernetes_masters' in group_names"
 
 
-- name: set keepalive role for master1
+- name: set keepalive role and priority for primary master
   set_fact:
     LEO_CLUSTER_KEEPALIVE_ROLE: 'MASTER'
     LEO_CLUSTER_KEEPALIVE_PRIORITY: 100
@@ -20,6 +20,14 @@
     LEO_CLUSTER_KEEPALIVE_ROLE: 'BACKUP'
     LEO_CLUSTER_KEEPALIVE_PRIORITY: 80
   when: "'kubernetes_masters' in group_names and inventory_hostname != groups['kubernetes_masters'][0]"
+
+
+- name: copy haproxy checking script
+  template:
+    src: check_haproxy.sh
+    dest: /etc/keepalived/check_haproxy.sh
+    mode: "a+x"
+  when: "'kubernetes_masters' in group_names"
 
 
 - name: install keepalived conf file

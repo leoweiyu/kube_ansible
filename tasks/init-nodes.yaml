@@ -1,27 +1,16 @@
-#- name: install calico operator
-#  k8s:
-#    state: present
-#    src: "{{ role_path }}/files/tigera-operator.yaml"
-#    kubeconfig: "/etc/kubernetes/admin.conf"
-#  when: >
-#    inventory_hostname == groups["kubernetes_masters"][0] and
-#    LEO_CLUSTER_CNI == "calico"
-#
-#- name: generate calico crds
-#  k8s:
-#    state: present
-#    definition: "{{ lookup('template', role_path + '/files/custom-resources.yaml') }}"
-#    kubeconfig: "/etc/kubernetes/admin.conf"
-#    wait_timeout: 600
-#    wait: yes
-#  when: >
-#    inventory_hostname == groups["kubernetes_masters"][0] and
-#    LEO_CLUSTER_CNI == "calico"
+- name: wait 5 mins to let all masters to be ready
+  command: "sleep 300"
+  when: >
+    inventory_hostname in groups["kubernetes_workers"] and
+    not node_initialized.stat.exists
+
+
 - name: download calico yaml file
   command: "wget https://docs.projectcalico.org/manifests/calico.yaml -O /tmp/calico.yaml"
   when: >
     inventory_hostname == groups["kubernetes_masters"][0] and
     LEO_CLUSTER_CNI == "calico"
+
 
 - name: install calico
   k8s:
@@ -32,16 +21,23 @@
     inventory_hostname == groups["kubernetes_masters"][0] and
     LEO_CLUSTER_CNI == "calico"
 
-- name: install flannel
-  k8s:
-    state: present
-    definition: "{{ lookup('template', role_path + '/files/kube-flannel.yml') }}"
-    kubeconfig: "/etc/kubernetes/admin.conf"
-    wait_timeout: 600
-    wait: yes
+
+- name: download flannel yaml file
+  command: "wget https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml -O /tmp/flannel.yaml"
   when: >
     inventory_hostname == groups["kubernetes_masters"][0] and
     LEO_CLUSTER_CNI == "flannel"
+
+
+- name: install flannel
+  k8s:
+    state: present
+    src: "/tmp/flannel.yaml"
+    kubeconfig: "/etc/kubernetes/admin.conf"
+  when: >
+    inventory_hostname == groups["kubernetes_masters"][0] and
+    LEO_CLUSTER_CNI == "flannel"
+
 
 - name: join nodes 
   command: "{{ basic_command }}"
@@ -49,15 +45,18 @@
           inventory_hostname in groups["kubernetes_workers"] and
           not node_initialized.stat.exists
 
+
 - name: create .kube folder
   command: mkdir ~/.kube
   when: >
           inventory_hostname == groups["kubernetes_masters"][0]
 
+
 - name: copy kubeconfig file to root user directory
   command: cp /etc/kubernetes/admin.conf /root/.kube/config
   when: >
           inventory_hostname == groups["kubernetes_masters"][0]
+
 
 - name: auto approve kubelet-serving csr
   script: "{{ role_path }}/files/approve_csr.sh"

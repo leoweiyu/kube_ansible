@@ -7,7 +7,7 @@ global_defs {
 }
 
 vrrp_script chk_haproxy {
-  script "pgrep haproxy"
+  script "/etc/keepalived/check_haproxy.sh"
   interval 2
 }
 

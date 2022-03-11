@@ -1,7 +1,7 @@
 LEO_CLUSTER_NAME: leotest
 LEO_CLUSTER_DEBUG: true
 LEO_CLUSTER_APT_KUBERNETES_URL: http://apt.kubernetes.io
-LEO_CLUSTER_KUBERNETES_VERSION: 1.21.4
+LEO_CLUSTER_KUBERNETES_VERSION: 1.23.4
 # Container runtime is now support docker and containerd
 LEO_CLUSTER_CONTAINER_RUNTIME: containerd
 LEO_CLUSTER_PROXY_MODE: ipvs

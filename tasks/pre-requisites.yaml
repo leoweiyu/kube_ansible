@@ -5,6 +5,7 @@
   package_facts:
     manager: auto
 
+
 - name: print the package facts
   debug:
     var: ansible_facts.packages
@@ -19,14 +20,15 @@
   - name: add kuberentes apt repository key
     apt_key:
       url: "{{ LEO_CLUSTER_APT_KUBERNETES_URL }}/doc/apt-key.gpg"
-      #id: 54A647F9048D5688D7DA2ABE6A030B21BA07F4FB
       state: present
+
 
   - name: add kubernetes apt repo
     apt_repository:
       repo: "deb {{ LEO_CLUSTER_APT_KUBERNETES_URL }} kubernetes-xenial main"
       state: present
  
+
   - name: install docker
     apt:
       update_cache: true
@@ -35,12 +37,14 @@
       state: present
     when: LEO_CLUSTER_CONTAINER_RUNTIME == "docker"
 
+
   - name: install jq
     apt:
       update_cache: true
       name:
         - jq
       state: present
+
 
   - name: install containerd
     apt:
@@ -50,6 +54,26 @@
       state: present
     when: LEO_CLUSTER_CONTAINER_RUNTIME == "containerd"
 
+
+  - name: install python3 and pip3
+    apt:
+      name:
+        - python3
+        - python3-pip
+      state: present
+    when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+
+
+  - name: update pip
+    command: "/usr/bin/python3 -m pip install --upgrade pip"
+    when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+
+
+  - name: install ansible playbook requirement
+    command: "pip3 install -r kube_ansible/requirement.yaml"
+    when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+
+
   - name: install kubernetes packages
     apt:
       name:
@@ -57,7 +81,8 @@
         - kubeadm={{ LEO_CLUSTER_KUBERNETES_VERSION }}-00
         - kubectl={{ LEO_CLUSTER_KUBERNETES_VERSION }}-00
       state: present
-  when: '"kubeadm" not in ansible_facts.packages and ansible_os_family == "Debian"'
+  when: 'ansible_os_family == "Debian"'
+
 
 - name: auto start container runtime
   service:
@@ -65,13 +90,15 @@
     state: started
     enabled: true
 
-- name: Install Ipset package
+
+- name: Install ipset package
   package:
     name: ipset
     state: present
   when: LEO_CLUSTER_PROXY_MODE == "ipvs"
 
-- name: Install Ipset package
+
+- name: Install ipvsadm package
   package:
     name: ipvsadm
     state: present
@@ -92,6 +119,7 @@
     - ip_vs_wrr
     - ip_vs_sh
   when: LEO_CLUSTER_PROXY_MODE == "ipvs"
+
 
 # (if you use docker as container run time, then you don't need this)
 - name: Load br_netfilter module 

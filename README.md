@@ -35,7 +35,7 @@ apt update
 apt upgrade
 ```
 
-c) **setup hostname in /etc/hosts file**
+c) **setup hostname in /etc/hosts file on each hosts**
 ```
 192.168.1.171    xansible1.192.168.1.171.nip.io
 192.168.1.172    xansible1.192.168.1.171.nip.io
@@ -67,12 +67,7 @@ ssh-copy-id root@xansible3.192.168.1.173.nip.io
 ssh-copy-id root@xansible4.192.168.1.174.nip.io
 ```
 
-f) **install python3 and pip3 on api server 1 (xansible1.192.168.1.171.nip.io for example)**
-```
-apt-get install python3 python3-pip
-```
-
-g) **make sure you have python3 installed on api server 1 (xansible1.192.168.1.171.nip.io for example)**
+f) **make sure you have python3 installed on api server 1 (xansible1.192.168.1.171.nip.io for example)**
 ```
 apt install software-properties-common
 apt-add-repository --yes --update ppa:ansible/ansible
@@ -86,11 +81,6 @@ apt install ansible python3-pip
 
 ```
 git clone git@github.com:leoweiyu/kube_ansible.git
-```
-
-**install requirements for this playbook**
-```
-pip install -r kube_ansible/requirement.yaml
 ```
 
 **examine kube_ansible/vars/main.yaml and making changes base on your environment and requirement**
