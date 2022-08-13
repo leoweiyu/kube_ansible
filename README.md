@@ -3,18 +3,19 @@
 The purpose of this repo is to setup a fully functional kubernetes cluster easily with Ansible (within 30-60mins time, including environment prepairation)
 so that you can prepair you CKA/CKS exam locally using VMs (either VirtualBox/Vmware.. etc) instead of buying a environment.
 
-## NOTE:
-Do NOT update to 1.23.4 if you are using Calico CNI , p2p traffic will fail which throw the following error message, and the fix might be shipped until Calico:v3.22.1
-```
-ipset v7.1: Kernel and userspace incompatible: settype hash:ip,port with revision 6 not supported by userspace
-```
 
 ## features:
 1. HA (keepalived and haproxy)
-2. Allows you to specify CNI, either Calico CNI or Flannel (use Calico if you want to play with NetworkPolicies)
+2. Allows you to specify CNI
+   - Calico
+   - Cilium
+   - Flannel
 3. Allows you to specify controller plugins
-4. Allow you to specify container runtime (Docker/Containerd)
+4. Allow you to specify container runtime
+   - Docker
+   - Containerd
 5. Allow to you setup a fully functional k8s cluster without having in depth knowledge of kubernetes
+6. Install OpenELB to enable Layer2 mode LoadBalancer Pool
 
 
 ## prerequisites:
@@ -95,6 +96,11 @@ git clone git@github.com:leoweiyu/kube_ansible.git
     - kube_ansible
   vars_files:
     - kube_ansible/vars/main.yaml
+```
+
+**install required python package**
+```
+pip3 install -r kube_ansible/requirement.yaml
 ```
 
 **you can now run following command to install your cluster**

@@ -6,21 +6,24 @@
       - haproxy
     state: present
   when: "'kubernetes_masters' in group_names"
-
+  tags:
+  - haproxy
 
 - name: set keepalive role and priority for primary master
   set_fact:
     LEO_CLUSTER_KEEPALIVE_ROLE: 'MASTER'
     LEO_CLUSTER_KEEPALIVE_PRIORITY: 100
   when: 'inventory_hostname == groups["kubernetes_masters"][0]'
-
+  tags:
+  - haproxy
 
 - name: set keepalive role for other masters
   set_fact:
     LEO_CLUSTER_KEEPALIVE_ROLE: 'BACKUP'
     LEO_CLUSTER_KEEPALIVE_PRIORITY: 80
   when: "'kubernetes_masters' in group_names and inventory_hostname != groups['kubernetes_masters'][0]"
-
+  tags:
+  - haproxy
 
 - name: copy haproxy checking script
   template:
@@ -28,7 +31,8 @@
     dest: /etc/keepalived/check_haproxy.sh
     mode: "a+x"
   when: "'kubernetes_masters' in group_names"
-
+  tags:
+  - haproxy
 
 - name: install keepalived conf file
   template:
@@ -36,7 +40,8 @@
     dest: /etc/keepalived/keepalived.conf
     mode: 0644
   when: "'kubernetes_masters' in group_names"
-
+  tags:
+  - haproxy
 
 - name: install haproxy conf file
   template:
@@ -44,7 +49,8 @@
     dest: /etc/haproxy/haproxy.cfg
     mode: 0644
   when: "'kubernetes_masters' in group_names" 
-
+  tags:
+  - haproxy
 
 - name: enable haproxy and keepalived service
   service:
@@ -55,3 +61,5 @@
     - haproxy
     - keepalived
   when: "'kubernetes_masters' in group_names"
+  tags:
+  - haproxy

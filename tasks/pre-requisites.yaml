@@ -4,13 +4,15 @@
 - name: Gather the package facts
   package_facts:
     manager: auto
-
+  tags:
+  - prepare
 
 - name: print the package facts
   debug:
     var: ansible_facts.packages
   when: LEO_CLUSTER_DEBUG == true
-
+  tags:
+  - prepare
 
 #####################################
 # Install required packages
@@ -82,28 +84,32 @@
         - kubectl={{ LEO_CLUSTER_KUBERNETES_VERSION }}-00
       state: present
   when: 'ansible_os_family == "Debian"'
-
+  tags:
+  - prepare
 
 - name: auto start container runtime
   service:
     name: "{{ LEO_CLUSTER_CONTAINER_RUNTIME }}"
     state: started
     enabled: true
-
+  tags:
+  - prepare
 
 - name: Install ipset package
   package:
     name: ipset
     state: present
   when: LEO_CLUSTER_PROXY_MODE == "ipvs"
-
+  tags:
+  - prepare
 
 - name: Install ipvsadm package
   package:
     name: ipvsadm
     state: present
   when: LEO_CLUSTER_PROXY_MODE == "ipvs"
-
+  tags:
+  - prepare
 
 
 #########################################
@@ -119,7 +125,8 @@
     - ip_vs_wrr
     - ip_vs_sh
   when: LEO_CLUSTER_PROXY_MODE == "ipvs"
-
+  tags:
+  - prepare
 
 # (if you use docker as container run time, then you don't need this)
 - name: Load br_netfilter module 
@@ -130,7 +137,8 @@
     - overlay
     - br_netfilter
   when: LEO_CLUSTER_CONTAINER_RUNTIME == "containerd"
-
+  tags:
+  - prepare
 
 ########################################
 # Set required sysctl parameters
@@ -145,7 +153,8 @@
     - net.bridge.bridge-nf-call-ip6tables
     - net.bridge.bridge-nf-call-iptables
     - net.ipv4.ip_forward
-
+  tags:
+  - prepare
 
 ########################################
 # Turn off swap
@@ -165,3 +174,5 @@
         path: /etc/fstab
         regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
         replace: '# \1'
+  tags:
+  - prepare

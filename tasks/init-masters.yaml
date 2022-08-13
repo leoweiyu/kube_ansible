@@ -4,6 +4,8 @@
     state: directory
     mode: 0755
   when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+  tags:
+  - master
 
 
 - name: Copy the kubeadm init config
@@ -12,24 +14,32 @@
     dest: '/etc/kubeadm/config.yaml'
     mode: 0644
   when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+  tags:
+  - master
 
 
 - name: check init lck
   stat:
     path: '/etc/kubernetes/admin.conf'
   register: node_initialized
+  tags:
+  - master
 
 
 - name: Init master node 0
   shell: 'kubeadm init --config /etc/kubeadm/config.yaml > /etc/kubernetes/init.lck'
   register: init_master_output
   when: 'inventory_hostname == groups["kubernetes_masters"][0] and not node_initialized.stat.exists'
+  tags:
+  - master
 
 
 - name: debug join commands
   debug:
     var: init_master_output
   when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+  tags:
+  - master
 
 
 - name: get join command
@@ -42,16 +52,22 @@
     executable: /bin/bash
   register: join_command
   delegate_to: "{{ groups['kubernetes_masters'][0] }}"
+  tags:
+  - master
 
 
 - name: debug join command
   debug:
     var: join_command['stdout']
   when: 'inventory_hostname == groups["kubernetes_masters"][0]'
+  tags:
+  - master
 
 
 - name: set fact on other hosts
   set_fact: basic_command="{{ join_command['stdout'] }}"
+  tags:
+  - master
 
 
 - name: copy PKI files to other master servers
@@ -63,6 +79,8 @@
   when: >
           inventory_hostname in groups["kubernetes_masters"] and
           inventory_hostname != groups["kubernetes_masters"][0]
+  tags:
+  - master
 
 
 - name: remove unneeded etcd certs
@@ -78,14 +96,41 @@
           inventory_hostname in groups["kubernetes_masters"] and
           inventory_hostname != groups["kubernetes_masters"][0] and
           not node_initialized.stat.exists
+  tags:
+  - master
 
 
-- name: wait 3 mins to let primary master to be ready
-  command: "sleep 180"
+- name: wait 5 mins to let primary master to be ready
+  command: "sleep 300"
   when: >
           inventory_hostname in groups["kubernetes_masters"] and
           inventory_hostname != groups["kubernetes_masters"][0] and
           not node_initialized.stat.exists
+  tags:
+  - master
+
+
+- name: stop keepalive and haproxy on other master nodes
+  shell: |
+          systemctl stop haproxy;
+          systemctl stop keepalived
+  when: >
+          inventory_hostname in groups["kubernetes_masters"] and
+          inventory_hostname != groups["kubernetes_masters"][0]
+  tags:
+  - master
+
+
+- name: restart Keepalive and Haproxy on primary master
+  shell: |
+          systemctl restart keepalived;
+          systemctl restart haproxy;
+          sleep 60
+  when: > 
+          inventory_hostname in groups["kubernetes_masters"] and
+          not node_initialized.stat.exists
+  tags:
+  - master
 
 
 - name: join other masters
@@ -94,4 +139,16 @@
           inventory_hostname in groups["kubernetes_masters"] and
           inventory_hostname != groups["kubernetes_masters"][0] and
           not node_initialized.stat.exists
+  tags:
+  - master
 
+
+- name: start keepalive and haproxy on other master nodes
+  shell: |
+          systemctl start keepalived;
+          systemctl start haproxy
+  when: >
+          inventory_hostname in groups["kubernetes_masters"] and
+          inventory_hostname != groups["kubernetes_masters"][0]
+  tags:
+  - master

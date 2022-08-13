@@ -1,0 +1,8 @@
+apiVersion: network.kubesphere.io/v1alpha2
+kind: Eip
+metadata:
+  name: layer2-eip
+spec:
+  address: {{ LEO_CLUSTER_EIP_POOL }}
+  interface: {{ ansible_default_ipv4.interface }}
+  protocol: layer2

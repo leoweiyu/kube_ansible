@@ -1,12 +1,25 @@
 ---
 - name: Prerequisites
   include_tasks: pre-requisites.yaml
+  tags:
+  - prepare
 
 - name: setup API High availabilities
   include_tasks: haproxy-setup.yaml
+  tags:
+  - haproxy
 
 - name: Init masters
   include_tasks: init-masters.yaml
+  tags:
+  - master
 
 - name: Init nodes
   include_tasks: init-nodes.yaml
+  tags:
+  - node
+
+- name: Install OpenELB
+  include_tasks: openELB.yaml
+  tags:
+  - openelb

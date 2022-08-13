@@ -1,0 +1,75 @@
+- name: download openelb yaml file
+  command: "wget https://raw.githubusercontent.com/openelb/openelb/master/deploy/openelb.yaml -O /tmp/openelb.yaml"
+  when: >
+    inventory_hostname == groups["kubernetes_masters"][0]
+  tags:
+  - openelb
+
+
+- name: install openelb
+  k8s:
+    state: present
+    src: "/tmp/openelb.yaml"
+    kubeconfig: "/etc/kubernetes/admin.conf"
+  when: >
+    inventory_hostname == groups["kubernetes_masters"][0]
+  tags:
+  - openelb
+
+
+- name: generate kube-proxy config configmap
+  template:
+    src: kube-proxy.yaml.j2
+    dest: /tmp/kube-proxy.yaml
+    mode: 0644
+  when: >
+    inventory_hostname == groups["kubernetes_masters"][0]
+  tags:
+  - openelb
+
+
+- name: patch cm kube-proxy in kube-system namespace
+  command: "kubectl patch cm kube-proxy -n kube-system --type merge --patch-file /tmp/kube-proxy.yaml"
+  when: >
+    inventory_hostname == groups["kubernetes_masters"][0]
+  tags:
+  - openelb
+
+
+- name: restart kube-proxy pods
+  command: "kubectl rollout restart daemonset kube-proxy -n kube-system"
+  when: >
+    inventory_hostname == groups["kubernetes_masters"][0]
+  tags:
+  - openelb
+
+
+- name: wait kube-proxy ready
+  command: "sleep 120"
+  when: >
+    inventory_hostname == groups["kubernetes_masters"][0]
+  tags:
+  - openelb
+
+
+- name: generate eip pool definition
+  template:
+    src: eip.yaml.j2
+    dest: /tmp/eip.yaml
+    mode: 0644
+  when: >
+    inventory_hostname == groups["kubernetes_masters"][0]
+  tags:
+  - openelb
+
+
+- name: create eip pool
+  k8s:
+    state: present
+    src: "/tmp/eip.yaml"
+    kubeconfig: "/etc/kubernetes/admin.conf"
+  when: >
+    inventory_hostname == groups["kubernetes_masters"][0]
+  tags:
+  - openelb
+

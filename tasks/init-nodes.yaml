@@ -3,6 +3,8 @@
   when: >
     inventory_hostname in groups["kubernetes_workers"] and
     not node_initialized.stat.exists
+  tags:
+  - node
 
 
 - name: download calico yaml file
@@ -10,6 +12,8 @@
   when: >
     inventory_hostname == groups["kubernetes_masters"][0] and
     LEO_CLUSTER_CNI == "calico"
+  tags:
+  - node
 
 
 - name: install calico
@@ -20,6 +24,25 @@
   when: >
     inventory_hostname == groups["kubernetes_masters"][0] and
     LEO_CLUSTER_CNI == "calico"
+  tags:
+  - node
+
+
+- name: install cilium
+  shell: |
+          CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/master/stable.txt);
+          CLI_ARCH=amd64;
+          wget https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz;
+          tar xzvfC cilium-linux-${CLI_ARCH}.tar.gz /usr/local/bin;
+          rm cilium-linux-${CLI_ARCH}.tar.gz;
+          mkdir ~/.kube/;
+          cp /etc/kubernetes/admin.conf ~/.kube/config;
+          /usr/local/bin/cilium install --config cluster-pool-ipv4-cidr=172.1.0.0/16 --config cluster-pool-ipv4-mask-size=24
+  when: >
+    inventory_hostname == groups["kubernetes_masters"][0] and
+    LEO_CLUSTER_CNI == "cilium"
+  tags:
+  - node
 
 
 - name: download flannel yaml file
@@ -27,6 +50,8 @@
   when: >
     inventory_hostname == groups["kubernetes_masters"][0] and
     LEO_CLUSTER_CNI == "flannel"
+  tags:
+  - node
 
 
 - name: install flannel
@@ -37,6 +62,16 @@
   when: >
     inventory_hostname == groups["kubernetes_masters"][0] and
     LEO_CLUSTER_CNI == "flannel"
+  tags:
+  - node
+
+
+- name: sleep 3 minuts to make sure CNI are up and running
+  command: sleep 180
+  when: >
+    inventory_hostname == groups["kubernetes_masters"][0]
+  tags:
+  - node
 
 
 - name: join nodes 
@@ -44,21 +79,32 @@
   when: >
           inventory_hostname in groups["kubernetes_workers"] and
           not node_initialized.stat.exists
+  tags:
+  - node
 
 
 - name: create .kube folder
-  command: mkdir ~/.kube
+  file:
+    path: /root/.kube
   when: >
-          inventory_hostname == groups["kubernetes_masters"][0]
+          inventory_hostname == groups["kubernetes_masters"][0] and
+          LEO_CLUSTER_CNI != "cilium"
+  tags:
+  - node
 
 
 - name: copy kubeconfig file to root user directory
   command: cp /etc/kubernetes/admin.conf /root/.kube/config
   when: >
-          inventory_hostname == groups["kubernetes_masters"][0]
+          inventory_hostname == groups["kubernetes_masters"][0] and
+          LEO_CLUSTER_CNI != "cilium"
+  tags:
+  - node
 
 
 - name: auto approve kubelet-serving csr
   script: "{{ role_path }}/files/approve_csr.sh"
   when: >
           inventory_hostname == groups["kubernetes_masters"][0]
+  tags:
+  - node
